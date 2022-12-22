@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "csv-parse": "^5.3.3",
+    "twit": "^2.2.11"
+  },
+  "name": "twitter",
+  "version": "1.0.0",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
