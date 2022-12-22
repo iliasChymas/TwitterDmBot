@@ -72,7 +72,7 @@ const records = parse(csvRaw, {
   delimiter: ','
 })
 
-let nextIndex = records.findIndex(item => item.handle === String(nextRaw).trim())
+let nextIndex = records.findIndex(item => item.Handle === String(nextRaw).trim())
 
 if (nextIndex === -1) {
   nextIndex = 0
@@ -84,16 +84,16 @@ for (let i = nextIndex; i < records.length; i++) {
     fs.writeFileSync('next.txt', records[i], { encoding: 'utf8', flag: 'w' })
   }
 
-  let user = await getUserInfo(records[i].handle)
+  let user = await getUserInfo(records[i].Handle)
 
   try {
-    imageId = ImageUpload(records[i].image)
+    imageId = ImageUpload(records[i].Image)
   } catch (_err) {
-    if (records[i].image !== "") {
-      console.log("Could not find " + records[i].image)
+    if (records[i].Image !== "") {
+      console.log("Could not find " + records[i].Image)
     }
   }
-  await sendMessage(records[i].message, user.id, records[i].image)
-  console.log("[Info] Send message to: " + records[i].handle)
+  await sendMessage(records[i].Message, user.id, records[i].Image)
+  console.log("[Info] Send message to: " + records[i].Handle)
   await timer(120000)
 }
