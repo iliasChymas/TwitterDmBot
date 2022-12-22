@@ -85,15 +85,16 @@ for (let i = nextIndex; i < records.length; i++) {
   }
 
   let user = await getUserInfo(records[i].Handle)
-
+  let imageId = ""
   try {
-    imageId = ImageUpload(records[i].Image)
-  } catch (_err) {
+    imageId = await ImageUpload(records[i].Image)
+  } catch (err) {
     if (records[i].Image !== "") {
+      console.log(err)
       console.log("Could not find " + records[i].Image)
     }
   }
-  await sendMessage(records[i].Message, user.id, records[i].Image)
+  await sendMessage(records[i].Message, user.id, imageId)
   console.log("[Info] Send message to: " + records[i].Handle)
   await timer(120000)
 }
