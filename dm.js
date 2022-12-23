@@ -2,12 +2,13 @@ import Twit from "twit"
 import { config } from './config.js'
 import { parse } from 'csv-parse/sync'
 import fs from "fs"
-import { resolve } from "dns";
+import path  from 'path'
 
 const T = Twit(config);
 
 const ImageUpload = (imagePath) => {
-  let b64content = fs.readFileSync(imagePath, { encoding: 'base64' })
+  const imageFolder = path.resolve(process.cwd(), "images")
+  let b64content = fs.readFileSync(path.join(imageFolder, imagePath), { encoding: 'base64' })
   return new Promise((resolve, reject) => {
     T.post('media/upload', { media_data: b64content }, function(err, data, _response) {
       if (err) reject(err)
