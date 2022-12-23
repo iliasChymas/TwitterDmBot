@@ -2,6 +2,7 @@ import Twit from "twit"
 import { config } from './config.js'
 import { parse } from 'csv-parse/sync'
 import fs from "fs"
+import { resolve } from "dns";
 
 const T = Twit(config);
 
@@ -52,7 +53,9 @@ const sendMessage = (text, uid, imageId) => {
   }
   return new Promise((reject, resolve) => {
     T.post("direct_messages/events/new", data, function(data, err, _response) {
-      if (err) reject(err)
+      if (err) {
+        reject(err)
+       }
       resolve(data)
     })
   })
@@ -85,6 +88,7 @@ for (let i = nextIndex; i < records.length; i++) {
   }
 
   let user = await getUserInfo(records[i].Handle)
+  console.log(user.id)
   let imageId = ""
   try {
     imageId = await ImageUpload(records[i].Image)
@@ -94,7 +98,12 @@ for (let i = nextIndex; i < records.length; i++) {
       console.log("Could not find " + records[i].Image)
     }
   }
-  await sendMessage(records[i].Message, user.id, imageId)
-  console.log("[Info] Send message to: " + records[i].Handle)
+  try {
+    await sendMessage(records[i].Message, user.id_str, imageId)
+    console.log("[Info] Send message to: " + records[i].Handle)
+  }
+  catch(err) {
+    console.log(err)
+  }
   await timer(120000)
 }
