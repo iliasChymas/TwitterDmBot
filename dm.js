@@ -1,14 +1,20 @@
 import Twit from "twit"
-import { config } from './config.js'
 import { parse } from 'csv-parse/sync'
 import fs from "fs"
-import path  from 'path'
 
-const T = Twit(config);
+let config = JSON.parse(process.argv[2])
 
-const ImageUpload = (imagePath) => {
-  const imageFolder = path.resolve(process.cwd(), "images")
-  let b64content = fs.readFileSync(path.join(imageFolder, imagePath), { encoding: 'base64' })
+const T = Twit({
+  consumer_key: config.consumer_key,
+  consumer_secret: config.consumer_secret,
+  access_token: config.access_token,
+  access_token_secret: config.access_token_secret,
+  timeout_ms: 60 * 1000,  // optional http request timeout to apply to all requests.
+  strictssl: true,     // optional - requires ssl certificates to be valid.
+});
+
+const ImageUpload = (imagepath) => {
+  let b64content = fs.readfilesync("./" + imagepath, { encoding: 'base64' })
   return new Promise((resolve, reject) => {
     T.post('media/upload', { media_data: b64content }, function(err, data, _response) {
       if (err) reject(err)
@@ -20,9 +26,9 @@ const ImageUpload = (imagePath) => {
 
 const timer = ms => new Promise(res => setTimeout(res, ms))
 
-const getUserInfo = (tHandle) => {
+const getUserInfo = (thandle) => {
   return new Promise((reject, resolve) => {
-    T.get("users/show", { screen_name: tHandle }, function(data, err, _response) {
+    T.get("users/show", { screen_name: thandle }, function(data, err, _response) {
       if (err) {
         reject(err)
       }
@@ -31,7 +37,7 @@ const getUserInfo = (tHandle) => {
   })
 }
 
-const sendMessage = (text, uid, imageId) => {
+const sendMessage = (text, uid, imageid) => {
   let data = {
     event: {
       type: "message_create", message_create: {
@@ -44,19 +50,17 @@ const sendMessage = (text, uid, imageId) => {
       }
     }
   }
-  if (imageId !== undefined && imageId !== "") {
+  if (imageid !== undefined && imageid !== "") {
     data.event.message_create.message_data.attachment = {
       type: "media",
       media: {
-        id: imageId
+        id: imageid
       }
     }
   }
   return new Promise((reject, resolve) => {
     T.post("direct_messages/events/new", data, function(data, err, _response) {
-      if (err) {
-        reject(err)
-       }
+      if (err) reject(err)
       resolve(data)
     })
   })
@@ -67,7 +71,7 @@ let nextRaw;
 try {
   nextRaw = fs.readFileSync("next.txt")
 } catch (_err) {
-  fs.writeFileSync("next.txt", "")
+  fs.writefilesync("next.txt", "")
   nextRaw = fs.readFileSync("next.txt")
 }
 
@@ -75,21 +79,13 @@ const records = parse(csvRaw, {
   columns: true,
   delimiter: ','
 })
+console.log(records)
+let nextIndex = records.findIndex(item => item.Handle === String(nextRaw).trim()) + 1
 
-let nextIndex = records.findIndex(item => item.Handle === String(nextRaw).trim())
 
-if (nextIndex === -1) {
-  nextIndex = 0
-}
-
-for (let i = nextIndex; i < records.length; i++) {
-
-  if (i - nextIndex >= 450) {
-    fs.writeFileSync('next.txt', records[i], { encoding: 'utf8', flag: 'w' })
-  }
-
+for (let i = nextIndex + Number(process.argv[3]); i < records.length; i = i + process.argv[3]) {
+  fs.writeFileSync('next.txt', records[i].Handle, { encoding: 'utf8', flag: 'w' })
   let user = await getUserInfo(records[i].Handle)
-  console.log(user.id)
   let imageId = ""
   try {
     imageId = await ImageUpload(records[i].Image)
@@ -99,12 +95,8 @@ for (let i = nextIndex; i < records.length; i++) {
       console.log("Could not find " + records[i].Image)
     }
   }
-  try {
-    await sendMessage(records[i].Message, user.id_str, imageId)
-    console.log("[Info] Send message to: " + records[i].Handle)
-  }
-  catch(err) {
-    console.log(err)
-  }
+  const data = await sendMessage(records[i].Message, user.id, imageId)
+  console.log(data)
+  console.log("[Info] Send message to: " + records[i].Handle)
   await timer(120000)
 }
