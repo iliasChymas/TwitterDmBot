@@ -14,7 +14,7 @@ const T = Twit({
 });
 
 const ImageUpload = (imagepath) => {
-  let b64content = fs.readfilesync("./" + imagepath, { encoding: 'base64' })
+  let b64content = fs.readFileSync("./images/" + imagepath, { encoding: 'base64' })
   return new Promise((resolve, reject) => {
     T.post('media/upload', { media_data: b64content }, function(err, data, _response) {
       if (err) reject(err)
@@ -26,9 +26,9 @@ const ImageUpload = (imagepath) => {
 
 const timer = ms => new Promise(res => setTimeout(res, ms))
 
-const getUserInfo = (thandle) => {
+const getUserInfo = (tHandle) => {
   return new Promise((reject, resolve) => {
-    T.get("users/show", { screen_name: thandle }, function(data, err, _response) {
+    T.get("users/show", { screen_name: tHandle }, function(data, err, _response) {
       if (err) {
         reject(err)
       }
@@ -66,20 +66,19 @@ const sendMessage = (text, uid, imageid) => {
   })
 }
 
-const csvRaw = fs.readFileSync("messages.csv")
+const recordsRaw = fs.readFileSync("csvjson.json")
 let nextRaw;
 try {
   nextRaw = fs.readFileSync("next.txt")
 } catch (_err) {
-  fs.writefilesync("next.txt", "")
+  fs.writeFileSync("next.txt", "")
   nextRaw = fs.readFileSync("next.txt")
 }
 
-const records = parse(csvRaw, {
-  columns: true,
-  delimiter: ','
-})
+const records = JSON.parse(recordsRaw)
+
 console.log(records)
+
 let nextIndex = records.findIndex(item => item.Handle === String(nextRaw).trim()) + 1
 
 
@@ -95,8 +94,11 @@ for (let i = nextIndex + Number(process.argv[3]); i < records.length; i = i + pr
       console.log("Could not find " + records[i].Image)
     }
   }
-  const data = await sendMessage(records[i].Message, user.id, imageId)
-  console.log(data)
-  console.log("[Info] Send message to: " + records[i].Handle)
+  try {
+    await sendMessage(records[i].Message, user.id_str, imageId)
+    console.log("[Info] Messaged: ", records[i].Handle)
+  } catch (err) {
+    console.log("Could not message: " + records[i].Handle)
+  }
   await timer(120000)
 }
