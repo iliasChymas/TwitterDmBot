@@ -100,5 +100,5 @@ for (let i = nextIndex + Number(process.argv[3]); i < records.length; i = i + Nu
   } catch (err) {
     console.log("Could not message: " + records[i].Handle)
   }
-  //await timer(120000)
+  await timer(120000)
 }
