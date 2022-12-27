@@ -82,7 +82,8 @@ console.log(records)
 let nextIndex = records.findIndex(item => item.Handle === String(nextRaw).trim()) + 1
 
 
-for (let i = nextIndex + Number(process.argv[3]); i < records.length; i = i + process.argv[3]) {
+for (let i = nextIndex + Number(process.argv[3]); i < records.length; i = i + Number(process.argv[3]) + 1) {
+  console.log(i)
   fs.writeFileSync('next.txt', records[i].Handle, { encoding: 'utf8', flag: 'w' })
   let user = await getUserInfo(records[i].Handle)
   let imageId = ""
@@ -99,5 +100,5 @@ for (let i = nextIndex + Number(process.argv[3]); i < records.length; i = i + pr
   } catch (err) {
     console.log("Could not message: " + records[i].Handle)
   }
-  await timer(120000)
+  //await timer(120000)
 }
