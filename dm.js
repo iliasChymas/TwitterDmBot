@@ -90,7 +90,6 @@ for (let i = nextIndex + Number(process.argv[3]); i < records.length; i = i + pr
     imageId = await ImageUpload(records[i].Image)
   } catch (err) {
     if (records[i].Image !== "") {
-      console.log(err)
       console.log("Could not find " + records[i].Image)
     }
   }
