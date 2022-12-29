@@ -81,7 +81,7 @@ let nextIndex = records.findIndex(message => message.Handle === String(nextRaw).
 if (nextIndex === -1) nextIndex = 0
 
 records = records.slice(nextIndex)
-let recordsToMessage = records.filter(message => message.account - 1 === Number(process.argv[3]))
+let recordsToMessage = records.filter(message => message.Account - 1 === Number(process.argv[3]))
 
 for (let i = nextIndex; i < recordsToMessage.length; i++) {
   fs.writeFileSync(`next${process.argv[3]}.txt`, recordsToMessage[i].Handle, { encoding: 'utf8', flag: 'w' })
