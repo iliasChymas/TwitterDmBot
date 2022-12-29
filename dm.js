@@ -69,36 +69,36 @@ const sendMessage = (text, uid, imageid) => {
 const recordsRaw = fs.readFileSync("csvjson.json")
 let nextRaw;
 try {
-  nextRaw = fs.readFileSync("next.txt")
+  nextRaw = fs.readFileSync(`next${process.argv[3]}.txt`)
 } catch (_err) {
-  fs.writeFileSync("next.txt", "")
-  nextRaw = fs.readFileSync("next.txt")
+  fs.writeFileSync(`next${process.argv[3]}.txt`, "")
+  nextRaw = fs.readFileSync(`next${process.argv[3]}.txt`)
 }
 
-const records = JSON.parse(recordsRaw)
+let records = JSON.parse(recordsRaw)
 
-console.log(records)
+let nextIndex = records.findIndex(message => message.Handle === String(nextRaw).trim())
+if (nextIndex === -1) nextIndex = 0
 
-let nextIndex = records.findIndex(item => item.Handle === String(nextRaw).trim()) + 1
+records = records.slice(nextIndex)
+let recordsToMessage = records.filter(message => message.account - 1 === Number(process.argv[3]))
 
-
-for (let i = nextIndex + Number(process.argv[3]); i < records.length; i = i + Number(process.argv[3]) + 1) {
-  console.log(i)
-  fs.writeFileSync('next.txt', records[i].Handle, { encoding: 'utf8', flag: 'w' })
-  let user = await getUserInfo(records[i].Handle)
+for (let i = nextIndex; i < recordsToMessage.length; i++) {
+  fs.writeFileSync(`next${process.argv[3]}.txt`, recordsToMessage[i].Handle, { encoding: 'utf8', flag: 'w' })
+  let user = await getUserInfo(recordsToMessage[i].Handle)
   let imageId = ""
   try {
-    imageId = await ImageUpload(records[i].Image)
+    imageId = await ImageUpload(recordsToMessage[i].Image)
   } catch (err) {
-    if (records[i].Image !== "") {
-      console.log("Could not find " + records[i].Image)
+    if (recordsToMessage[i].Image !== "") {
+      console.log("Could not find " + recordsToMessage[i].Image)
     }
   }
   try {
-    await sendMessage(records[i].Message, user.id_str, imageId)
-    console.log("[Info] Messaged: ", records[i].Handle)
+    await sendMessage(recordsToMessage[i].Message, user.id_str, imageId)
+    console.log("[Info] Messaged: ", recordsToMessage[i].Handle)
   } catch (err) {
-    console.log("Could not message: " + records[i].Handle)
+    console.log("Could not message: " + recordsToMessage[i].Handle)
   }
   await timer(120000)
 }
